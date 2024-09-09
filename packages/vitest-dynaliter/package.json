@@ -1,6 +1,6 @@
 {
   "name": "vitest-dynaliter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Run your tests using Vitest & Dynalite",
   "license": "MIT",
   "repository": "https://github.com/geertwille/vitest-dynalite",

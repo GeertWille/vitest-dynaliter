@@ -29,7 +29,7 @@ importers:
         specifier: ^1.1.4
         version: 1.1.4(typescript@5.5.4)
 
-  packages/e2e-custom-environment:
+  packages/e2e-setup-environment:
     dependencies:
       "@aws-sdk/client-dynamodb":
         specifier: ^3.645.0
@@ -44,6 +44,8 @@ importers:
       vitest:
         specifier: ^2.0.5
         version: 2.0.5(@types/node@22.5.4)(jsdom@25.0.0)
+
+  packages/e2e-setup-environment/vitest-environment-dynaliter: {}
 
   packages/e2e-setup-files:
     dependencies:

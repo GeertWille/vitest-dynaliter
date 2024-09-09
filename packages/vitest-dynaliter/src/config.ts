@@ -5,7 +5,6 @@ import { isFunction } from './utils'
 import { pathToFileURL } from 'url'
 
 export const CONFIG_FILE_NAME = 'dynalite.config.js'
-export const CONFIG_FILE_NAME_CJS = 'dynalite.config.cjs'
 export const CONFIG_FILE_NAME_TS = 'dynalite.config.ts'
 
 export class NotFoundError extends Error {
@@ -20,13 +19,11 @@ if (!process.env.VITEST_DYNALITER_CONFIG_DIRECTORY) {
 
 const findConfigOrError = (
   directory: string
-): typeof CONFIG_FILE_NAME | typeof CONFIG_FILE_NAME_CJS | typeof CONFIG_FILE_NAME_TS => {
-  const foundFile = ([CONFIG_FILE_NAME, CONFIG_FILE_NAME_CJS, CONFIG_FILE_NAME_TS] as const).find(
-    (config) => {
-      const file = resolve(directory, config)
-      return fs.existsSync(file)
-    }
-  )
+): typeof CONFIG_FILE_NAME | typeof CONFIG_FILE_NAME_TS => {
+  const foundFile = ([CONFIG_FILE_NAME, CONFIG_FILE_NAME_TS] as const).find((config) => {
+    const file = resolve(directory, config)
+    return fs.existsSync(file)
+  })
 
   if (!foundFile) {
     throw new NotFoundError(resolve(directory))

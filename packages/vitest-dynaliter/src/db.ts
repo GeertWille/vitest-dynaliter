@@ -10,11 +10,26 @@ export const dynaliteInstance = dynalite({
   updateTableMs: 0
 })
 
+const listen = async () => {
+  await new Promise<void>((resolve, reject) => {
+    dynaliteInstance.once('error', reject)
+    dynaliteInstance.listen(process.env.MOCK_DYNAMODB_PORT, resolve)
+  })
+}
+const close = async () => {
+  await new Promise<void>((resolve) =>
+    dynaliteInstance.close((err: unknown) => {
+      if (err) {
+        console.error(err)
+      }
+      resolve()
+    })
+  )
+}
+
 export const start = async (): Promise<void> => {
   if (!dynaliteInstance.listening) {
-    await new Promise<void>((resolve) =>
-      dynaliteInstance.listen(process.env.MOCK_DYNAMODB_PORT, resolve)
-    )
+    await listen()
   }
 }
 
@@ -25,7 +40,7 @@ export const stop = async (): Promise<void> => {
   dynamodbV3.killConnection()
 
   if (dynaliteInstance.listening) {
-    await new Promise<void>((resolve) => dynaliteInstance.close(() => resolve()))
+    await close()
   }
 }
 

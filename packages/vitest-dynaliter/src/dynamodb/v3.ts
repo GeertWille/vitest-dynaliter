@@ -2,7 +2,8 @@ import {
   CreateTableCommand,
   DeleteTableCommand,
   DescribeTableCommand,
-  DynamoDBClient
+  DynamoDBClient,
+  ResourceNotFoundException
 } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { TableConfig } from '../types'
@@ -38,20 +39,16 @@ const dbConnection = (port: number): Connection => {
 }
 
 const waitForTable = async (client: DynamoDBDocumentClient, tableName: string): Promise<void> => {
-  // eslint-disable-next-line no-constant-condition
   while (true) {
-    // eslint-disable-next-line no-await-in-loop
     const details = await client
       .send(new DescribeTableCommand({ TableName: tableName }))
       .catch(() => undefined)
 
     if (details?.Table?.TableStatus === 'ACTIVE') {
-      // eslint-disable-next-line no-await-in-loop
-      await sleep(10)
+      // await sleep(1) // Might need to put this back later
       break
     }
-    // eslint-disable-next-line no-await-in-loop
-    await sleep(10)
+    // await sleep(2) // Might need to put this back later
   }
 }
 
@@ -59,19 +56,17 @@ const waitForTable = async (client: DynamoDBDocumentClient, tableName: string): 
  * Poll the tables list to ensure that the given list of tables exists
  */
 const waitForDeleted = async (client: DynamoDBDocumentClient, tableName: string): Promise<void> => {
-  // eslint-disable-next-line no-constant-condition
+  let delay = 1
   while (true) {
-    // eslint-disable-next-line no-await-in-loop
-    const details = await client
-      .send(new DescribeTableCommand({ TableName: tableName }))
-      .catch((e) => e.name === 'ResourceInUseException')
-
-    // eslint-disable-next-line no-await-in-loop
-    await sleep(100)
-
-    if (!details) {
-      break
+    try {
+      await client.send(new DescribeTableCommand({ TableName: tableName }))
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        break
+      }
     }
+    await sleep(delay)
+    delay = Math.min(delay * 2, 2) // Exponential backoff, max 2 seconds
   }
 }
 
@@ -79,11 +74,11 @@ export const deleteTables = (tableNames: string[], port: number): Promise<void> 
   runWithRealTimers(async () => {
     const { documentClient } = dbConnection(port)
     await Promise.all(
-      tableNames.map((table) =>
-        documentClient.send(new DeleteTableCommand({ TableName: table })).catch(() => {})
-      )
+      tableNames.map(async (table) => {
+        await documentClient.send(new DeleteTableCommand({ TableName: table })).catch(() => {})
+        await waitForDeleted(documentClient, table)
+      })
     )
-    await Promise.all(tableNames.map((table) => waitForDeleted(documentClient, table)))
   })
 
 export const createTables = (tables: TableConfig[], port: number): Promise<void> =>
@@ -91,33 +86,29 @@ export const createTables = (tables: TableConfig[], port: number): Promise<void>
     const { documentClient } = dbConnection(port)
 
     await Promise.all(
-      tables.map(({ data, ...rest }) => {
-        return documentClient.send(new CreateTableCommand({ ...rest } as any))
-      })
-    )
-
-    await Promise.all(tables.map((table) => waitForTable(documentClient, table.TableName)))
-    await Promise.all(
-      tables.map(
-        (table) =>
-          table.data &&
-          Promise.all(
-            table.data.map(async (row) => {
-              return documentClient
-                .send(
-                  new PutCommand({
-                    TableName: table.TableName,
-                    Item: row
-                  })
-                )
-                .catch((e) => {
-                  throw new Error(
-                    `Could not add ${JSON.stringify(row)} to "${table.TableName}": ${e.message}`
-                  )
+      tables.map(async ({ data, ...rest }) => {
+        await documentClient.send(new CreateTableCommand({ ...rest } as any))
+        await waitForTable(documentClient, rest.TableName)
+        if (!data) {
+          return
+        }
+        await Promise.all(
+          data.map(async (row) => {
+            return documentClient
+              .send(
+                new PutCommand({
+                  TableName: rest.TableName,
+                  Item: row
                 })
-            })
-          )
-      )
+              )
+              .catch((e) => {
+                throw new Error(
+                  `Could not add ${JSON.stringify(row)} to "${rest.TableName}": ${e.message}`
+                )
+              })
+          })
+        )
+      })
     )
   })
 

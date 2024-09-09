@@ -1,17 +1,12 @@
 import setup from './setup'
 import { start, stop } from './db'
-import {
-  CONFIG_FILE_NAME,
-  CONFIG_FILE_NAME_CJS,
-  CONFIG_FILE_NAME_TS,
-  NotFoundError
-} from './config'
+import { CONFIG_FILE_NAME, CONFIG_FILE_NAME_TS, NotFoundError } from './config'
 import { Environment, builtinEnvironments } from 'vitest/environments'
 
 export default <Environment>{
   ...builtinEnvironments.node,
   name: 'dynaliter',
-  async setup(global, { dynalite: { rootDir } }) {
+  async setup(global, { dynaliter: { rootDir } }) {
     const env = builtinEnvironments['node']
     const envReturn = await env.setup(global, {})
 
@@ -21,7 +16,7 @@ export default <Environment>{
     } catch (e) {
       if (e instanceof NotFoundError) {
         throw new Error(`
-vitest-dynaliter could not find "${CONFIG_FILE_NAME}" or "${CONFIG_FILE_NAME_CJS}" or "${CONFIG_FILE_NAME_TS}" in the vitest <rootDir> (${rootDir}).
+vitest-dynaliter could not find "${CONFIG_FILE_NAME}" or "${CONFIG_FILE_NAME_TS}" in the vitest <rootDir> (${rootDir}).
 
 If you didn't intend to be using this directory for the config, please specify a custom
 directory using VITEST_DYNALITER_CONFIG_DIRECTORY

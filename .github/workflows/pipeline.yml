@@ -87,7 +87,7 @@ jobs:
 
     strategy:
       matrix:
-        package: [e2e-setup-files]
+        package: [e2e-setup-files, e2e-setup-ts]
 
     steps:
       - uses: actions/checkout@v4
