@@ -1,0 +1,16 @@
+{
+    "name": "vitest-dynalite-e2e-custom-environment",
+    "private": true,
+    "scripts": {
+        "test": "vitest"
+    },
+    "type": "module",
+    "devDependencies": {
+        "vitest": "^2.0.5"
+    },
+    "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.645.0",
+        "@aws-sdk/lib-dynamodb": "^3.645.0",
+        "vitest-dynaliter": "workspace:*"
+    }
+}

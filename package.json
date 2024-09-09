@@ -1,0 +1,46 @@
+{
+  "name": "vitest-dynalite",
+  "version": "0.0.1",
+  "description": "Run your tests using Vitest & Dynalite",
+  "license": "MIT",
+  "repository": "https://github.com/geertwille/vitest-dynalite",
+  "main": "dist/environment.js",
+  "typings": "dist/index.d.ts",
+  "author": {
+    "name": "Geert Wille",
+    "email": "test@test.dev",
+    "url": "https://test.dev"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "vitest",
+    "dynamodb",
+    "dynamodb local",
+    "dynalite",
+    "vitest preset",
+    "vitest environment"
+  ],
+  "devDependencies": {
+    "@commitlint/cli": "^19.4.1",
+    "@commitlint/config-conventional": "^19.4.1",
+    "commitlint": "^19.4.1",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "tsc-files": "^1.1.4"
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "pnpm@9.1.4"
+}
